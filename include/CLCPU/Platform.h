@@ -14,4 +14,4 @@ clGetPlatformInfo(cl_platform_id   platform,
                   void *           param_value,
                   size_t *         param_value_size_ret) CL_API_SUFFIX__VERSION_1_0;
 
-bool verifyPlatform(cl_platform_id platform);
+bool verifyPlatform(const cl_platform_id platform);

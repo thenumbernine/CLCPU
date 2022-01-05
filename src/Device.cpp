@@ -10,14 +10,14 @@
 static int cl_device_verify = rand();
 
 struct _cl_device_id {
-	struct _cl_icd_dispatch const * const dispatch = &dispatchTable;
-	
+	struct _cl_icd_dispatch const * const dispatch = &dispatchTable;	
 	int verify = cl_device_verify;
-
-	cl_platform_id platform = nullptr;
+	cl_platform_id platform = nullptr;	//assign upon clCreatePlatform
 };
 
 static _cl_device_id thisDevice;
+
+std::vector<cl_device_id> allDevices = {&thisDevice};
 
 CL_API_ENTRY cl_int CL_API_CALL clGetDeviceIDs(
 	cl_platform_id platform,
@@ -58,6 +58,8 @@ static auto getDeviceInfoFields = std::map<cl_device_info, std::shared_ptr<Gette
 	{CL_DEVICE_VENDOR_ID, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_uint>>(0)},
 	{CL_DEVICE_MAX_COMPUTE_UNITS, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_uint>>(clDeviceMaxComputeUnits)},
 	{CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_uint>>(clDeviceMaxWorkItemDimension)},
+	
+	// TODO std::array-based getter
 	{CL_DEVICE_MAX_WORK_ITEM_SIZES, std::make_shared<GetterLambda<cl_device_id>>(
 		[](size_t param_value_size, void* param_value, size_t* param_value_size_ret, cl_device_id id) -> cl_int {
 			using ResultType = size_t;
@@ -75,6 +77,7 @@ static auto getDeviceInfoFields = std::map<cl_device_info, std::shared_ptr<Gette
 			return CL_SUCCESS;
 		}
 	)},
+	
 	{CL_DEVICE_MAX_MEM_ALLOC_SIZE, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_ulong>>(clDeviceMaxMemAllocSize)},
 	{CL_DEVICE_NAME, std::make_shared<GetStringLiteral<cl_device_id>>("CPU debug implementation")},
 	{CL_DEVICE_VENDOR, std::make_shared<GetStringLiteral<cl_device_id>>("Christopher Moore")},
@@ -82,16 +85,15 @@ static auto getDeviceInfoFields = std::map<cl_device_info, std::shared_ptr<Gette
 	{CL_DEVICE_VERSION, std::make_shared<GetStringLiteral<cl_device_id>>("OpenCL 1.1")},
 	{CL_DEVICE_EXTENSIONS, std::make_shared<GetStringLiteral<cl_device_id>>("cl_khr_fp64")},
 	{CL_DEVICE_PLATFORM, std::make_shared<GetPrimitiveFromLambda<cl_device_id, cl_platform_id>>([](cl_device_id device) -> cl_platform_id { return device->platform; })},
+	{CL_DEVICE_OPENCL_C_VERSION, std::make_shared<GetStringLiteral<cl_device_id>>("OpenCL 1.1")},
+	{CL_DEVICE_LINKER_AVAILABLE, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_bool>>(false)},
+	{CL_DEVICE_BUILT_IN_KERNELS, std::make_shared<GetStringLiteral<cl_device_id>>("")},
 };
 
-bool verifyDevice(cl_device_id device) {
+bool verifyDevice(const cl_device_id device) {
 	//verify device
-	if (device->verify != cl_device_verify) {
-		return false;
-	}
-	if (device != &thisDevice) {
-		return false;
-	}
+	if (device->verify != cl_device_verify) return false;
+	if (device != &thisDevice) return false;
 	return true;
 }
 

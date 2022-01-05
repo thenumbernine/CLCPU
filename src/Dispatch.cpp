@@ -2,16 +2,16 @@
 
 cl_icd_dispatch dispatchTable = {
 	/* OpenCL 1.0 */
-	&clGetPlatformIDs,//cl_api_clGetPlatformIDs clGetPlatformIDs;
-	&clGetPlatformInfo,//cl_api_clGetPlatformInfo clGetPlatformInfo;
+	clGetPlatformIDs,
+	clGetPlatformInfo,
+	clGetDeviceIDs,
+	clGetDeviceInfo,
+	clCreateContext,
+	clCreateContextFromType,
+	clRetainContext,
+	clReleaseContext,
+	clGetContextInfo,
 #if 0	
-	cl_api_clGetDeviceIDs clGetDeviceIDs;
-	cl_api_clGetDeviceInfo clGetDeviceInfo;
-	cl_api_clCreateContext clCreateContext;
-	cl_api_clCreateContextFromType clCreateContextFromType;
-	cl_api_clRetainContext clRetainContext;
-	cl_api_clReleaseContext clReleaseContext;
-	cl_api_clGetContextInfo clGetContextInfo;
 	cl_api_clCreateCommandQueue clCreateCommandQueue;
 	cl_api_clRetainCommandQueue clRetainCommandQueue;
 	cl_api_clReleaseCommandQueue clReleaseCommandQueue;

@@ -81,7 +81,7 @@ static auto getPlatformInfoFields = std::map<cl_platform_info, std::shared_ptr<G
 	})},
 };
 
-bool verifyPlatform(cl_platform_id platform) {
+bool verifyPlatform(const cl_platform_id platform) {
 	//verify platform
 	if (platform->verify != cl_platform_verify) {
 		return false;
