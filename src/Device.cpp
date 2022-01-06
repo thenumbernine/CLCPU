@@ -44,23 +44,22 @@ CL_API_ENTRY cl_int CL_API_CALL clGetDeviceIDs(
 }
 		
 static cl_uint clDeviceMaxComputeUnits = std::thread::hardware_concurrency();
-static cl_uint clDeviceMaxWorkItemDimension = 3;
 
 static auto getDeviceInfoFields = std::map<cl_device_info, std::shared_ptr<Getter<cl_device_id>>>{
 	{CL_DEVICE_TYPE, GetPrimitiveLiteral<cl_device_id, cl_device_type>(CL_DEVICE_TYPE_CPU)},
 	{CL_DEVICE_VENDOR_ID, GetPrimitiveLiteral<cl_device_id, cl_uint>(0)},
 	{CL_DEVICE_MAX_COMPUTE_UNITS, GetPrimitiveLiteral<cl_device_id, cl_uint>(clDeviceMaxComputeUnits)},
-	{CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, GetPrimitiveLiteral<cl_device_id, cl_uint>(clDeviceMaxWorkItemDimension)},
+	{CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, GetPrimitiveLiteral<cl_device_id, cl_uint>(_cl_device_id::maxWorkItemDim)},
 	
 	// TODO std::array-based getter
 	{CL_DEVICE_MAX_WORK_ITEM_SIZES, std::make_shared<GetterLambda<cl_device_id>>(
 		[](size_t param_value_size, void* param_value, size_t* param_value_size_ret, cl_device_id id) -> cl_int {
 			using ResultType = size_t;
 			if (param_value_size_ret) {
-				*param_value_size_ret = sizeof(ResultType) * clDeviceMaxWorkItemDimension;
+				*param_value_size_ret = sizeof(ResultType) * _cl_device_id::maxWorkItemDim;
 			}
 			if (param_value) {
-				if (param_value_size < sizeof(ResultType) * clDeviceMaxWorkItemDimension) {
+				if (param_value_size < sizeof(ResultType) * _cl_device_id::maxWorkItemDim) {
 					return CL_INVALID_VALUE;
 				}
 				((size_t*)param_value)[0] = 1024;

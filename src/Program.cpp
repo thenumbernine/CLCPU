@@ -25,6 +25,19 @@ struct vectorTypeInfo {
 	std::string name;
 	size_t size = {};
 };
+	
+//shared between symbol file and here
+static std::string progLibVarsVarName = "program_lib_vars";
+
+//what does the cl_program communicate with the library it links?
+// TODO THIS MUST MATCH THE Program.cpp GENERATE CL CODE HEADER!!!
+struct ProgramLibVars {
+	size_t global_id[_cl_device_id::maxWorkItemDim];
+	size_t global_size[_cl_device_id::maxWorkItemDim];
+	size_t local_id[_cl_device_id::maxWorkItemDim];
+	size_t local_size[_cl_device_id::maxWorkItemDim];
+	size_t group_id[_cl_device_id::maxWorkItemDim];
+};
 
 #define MAKE_VECTOR_TYPE_INFO(x)	vectorTypeInfo(#x, sizeof(cl_##x))
 
@@ -138,32 +151,42 @@ typedef union {
 )";
 	}
 
+// TODO THIS MUST MATCH THE Program.h FILE!!!
+	std::vector<std::string> libVarFields = {
+		"global_id",
+		"global_size",
+		"local_id",
+		"local_size",
+		"group_id",
+	};
+
+	//local to the cl file
+	std::string progLibVarsTypeName = "ProgramLibVars";
+
+	code += "struct " + progLibVarsTypeName + " {\n";
+	for (const auto field : libVarFields) {
+		code += "\tsize_t " + field + "[" + std::to_string(_cl_device_id::maxWorkItemDim) + "];\n";
+	}
+	code += "};\n\n";	
+
+	std::string arrayInitCode = "{";
+	for (size_t i = 0; i < _cl_device_id::maxWorkItemDim; ++i) {
+		if (i > 0) arrayInitCode += ",";
+		arrayInitCode += "0";
+	}
+	arrayInitCode += "}";
+
+	code += "EXTERN " + progLibVarsTypeName + " " + progLibVarsVarName + " = {\n";
+	for (const auto field : libVarFields) {
+		code += "\t." + field + " = " + arrayInitCode + ",\n";
+	}
+	code += "};\n\n";
+	
+	for (const auto field : libVarFields) {
+		code += "#define get_" + field + "(n)	(" + progLibVarsVarName + "." + field + "[n])\n";
+	}
+
 	code += R"(
-
-EXTERN size_t _program_)" + std::to_string(id) + R"(_global_id_0 = 0;
-EXTERN size_t _program_)" + std::to_string(id) + R"(_global_id_1 = 0;
-EXTERN size_t _program_)" + std::to_string(id) + R"(_global_id_2 = 0;
-#define get_global_id(n)	_program_)" + std::to_string(id) + R"(_global_id_##n
-
-EXTERN size_t _program_)" + std::to_string(id) + R"(_global_size_0 = 0;
-EXTERN size_t _program_)" + std::to_string(id) + R"(_global_size_1 = 0;
-EXTERN size_t _program_)" + std::to_string(id) + R"(_global_size_2 = 0;
-#define get_global_size(n)	_program_)" + std::to_string(id) + R"(_global_size_##n
-
-EXTERN size_t _program_)" + std::to_string(id) + R"(_local_id_0 = 0;
-EXTERN size_t _program_)" + std::to_string(id) + R"(_local_id_1 = 0;
-EXTERN size_t _program_)" + std::to_string(id) + R"(_local_id_2 = 0;
-#define get_local_id(n)	_program_)" + std::to_string(id) + R"(_local_id_##n
-
-EXTERN size_t _program_)" + std::to_string(id) + R"(_local_size_0 = 0;
-EXTERN size_t _program_)" + std::to_string(id) + R"(_local_size_1 = 0;
-EXTERN size_t _program_)" + std::to_string(id) + R"(_local_size_2 = 0;
-#define get_local_size(n)	_program_)" + std::to_string(id) + R"(_local_size_##n
-
-EXTERN size_t _program_)" + std::to_string(id) + R"(_group_id_0 = 0;
-EXTERN size_t _program_)" + std::to_string(id) + R"(_group_id_1 = 0;
-EXTERN size_t _program_)" + std::to_string(id) + R"(_group_id_2 = 0;
-#define get_group_id(n)	_program_)" + std::to_string(id) + R"(_group_id_##n
 
 int4 int4_add(int4 a, int4 b) {
 	return (int4){
@@ -267,27 +290,13 @@ clBuildProgram(
 	if (!pfn_notify && user_data) return CL_INVALID_VALUE;
 
 	// TODO clear any build-specific program variables here
-	program->libhandle = {};
-	program->libfn = {};
 	program->options = {};
 	program->log = {};
 	program->devices = {};
 	program->status = CL_BUILD_IN_PROGRESS;
-	program->_global_id_0 = {};
-	program->_global_id_1 = {};
-	program->_global_id_2 = {};
-	program->_global_size_0 = {};
-	program->_global_size_1 = {};
-	program->_global_size_2 = {};
-	program->_local_id_0 = {};
-	program->_local_id_1 = {};
-	program->_local_id_2 = {};
-	program->_local_size_0 = {};
-	program->_local_size_1 = {};
-	program->_local_size_2 = {};
-	program->_group_id_0 = {};
-	program->_group_id_1 = {};
-	program->_group_id_2 = {};
+	program->libfn = {};
+	program->libvars = {};
+	program->libhandle = {};
 	
 	// TODO and do the building here
 	std::string id = std::to_string(program->id);
@@ -311,37 +320,23 @@ clBuildProgram(
 		return CL_BUILD_PROGRAM_FAILURE;
 	}
 
-	void *libhandle = dlopen(libfn.c_str(), RTLD_LAZY);
+	void * libhandle = dlopen(libfn.c_str(), RTLD_LAZY);
 	if (!libhandle) {
 		program->status = CL_BUILD_ERROR;
 		program->log = Common::File::read(logfn);
 		return CL_BUILD_PROGRAM_FAILURE;
 	}
 
-	program->_global_id_0 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_id_0;").c_str());
-	program->_global_id_1 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_id_1;").c_str());
-	program->_global_id_2 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_id_2;").c_str());
-	
-	program->_global_size_0 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_size_0;").c_str());
-	program->_global_size_1 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_size_1;").c_str());
-	program->_global_size_2 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_size_2;").c_str());
+	auto libvars = (ProgramLibVars*)dlsym(libhandle, progLibVarsVarName.c_str());
+	if (!libvars) {
+		program->status = CL_BUILD_ERROR;
+		program->log = Common::File::read(logfn);
+		return CL_BUILD_PROGRAM_FAILURE;
+	}
 
-	program->_local_id_0 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_id_0;").c_str());
-	program->_local_id_1 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_id_1;").c_str());
-	program->_local_id_2 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_id_2;").c_str());
-	
-	program->_local_size_0 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_size_0;").c_str());
-	program->_local_size_1 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_size_1;").c_str());
-	program->_local_size_2 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_size_2;").c_str());
-	
-	program->_group_id_0 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_group_id_0;").c_str());
-	program->_group_id_1 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_group_id_1;").c_str());
-	program->_group_id_2 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_group_id_2;").c_str());
-
-	//TODO verify the linkage worked:
-
-	program->libhandle = libhandle;
 	program->libfn = libfn;
+	program->libhandle = libhandle;
+	program->libvars = libvars;
 	program->options = options;
 	program->log = Common::File::read(logfn);
 	program->devices = deviceVec;
