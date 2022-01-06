@@ -106,7 +106,7 @@ clGetMemObjectInfo(
 	void * param_value,
 	size_t * param_value_size_ret
 ) {
-	if (!verifyMem(memobj)) return CL_INVALID_PLATFORM;
+	if (!verifyMem(memobj)) return CL_INVALID_MEM_OBJECT;
 	auto i = getMemObjectInfoFields.find(param_name);
 	if (i == getMemObjectInfoFields.end()) return CL_INVALID_VALUE;
 	return i->second->getValue(param_value_size, param_value, param_value_size_ret, memobj);

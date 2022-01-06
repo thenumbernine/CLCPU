@@ -33,7 +33,7 @@ struct GetterLambda : public Getter<IdType> {
 template<typename IdType>
 struct GetString : public Getter<IdType> {
 	virtual cl_int getValue(size_t param_value_size, void* param_value, size_t* param_value_size_ret, IdType id) {
-		std::string result = getString();
+		std::string result = getString(id);
 		size_t const resultBufSize = result.size() + 1;
 		if (param_value_size_ret) {
 			param_value_size_ret[0] = resultBufSize;
@@ -47,19 +47,31 @@ struct GetString : public Getter<IdType> {
 		return CL_SUCCESS;
 	}
 
-	virtual std::string getString() = 0;
+	virtual std::string getString(IdType id) = 0;
 };
 
 template<typename IdType>
 struct GetStringLiteralClass : public GetString<IdType> {
 	std::string str;
 	GetStringLiteralClass(std::string const str_) : str(str_) {}
-	virtual std::string getString() { return str; }
+	virtual std::string getString(IdType id) { return str; }
 };
 
 template<typename IdType>
 auto GetStringLiteral(std::string str) {
 	return std::make_shared<GetStringLiteralClass<IdType>>(str);
+}
+
+template<typename IdType>
+struct GetStringFromLambdaClass : public GetString<IdType> {
+	std::function<std::string(IdType)> lambda;
+	GetStringFromLambdaClass(std::function<std::string(IdType)> lambda_) : lambda(lambda_) {}
+	virtual std::string getString(IdType id) { return lambda(id); }
+};
+
+template<typename IdType>
+auto GetStringFromLambda(std::function<std::string(IdType)> lambda) {
+	return std::make_shared<GetStringFromLambdaClass<IdType>>(lambda);
 }
 
 template<typename IdType, typename ResultType>
@@ -109,12 +121,18 @@ struct GetFieldClass : public GetPrimitive<
 > {
 	using IdBaseType = std::remove_pointer_t<IdType>;
 	ResultType IdBaseType::*field = {};
-	GetFieldClass(
-		ResultType IdBaseType::* field_
-	) : field(field_) {}
-	virtual ResultType getPrimitive(IdType id) {
-		return id->*field;
-	}
+	GetFieldClass(ResultType IdBaseType::* field_) : field(field_) {}
+	virtual ResultType getPrimitive(IdType id) { return id->*field; }
+};
+
+//and for strings ... use the GetString as a parent
+template<typename IdType>
+struct GetFieldClass<IdType, std::string> : public GetString<IdType> {
+	using IdBaseType = std::remove_pointer_t<IdType>;
+	using ResultType = std::string;
+	ResultType IdBaseType::*field = {};
+	GetFieldClass(ResultType IdBaseType::* field_) : field(field_) {}
+	virtual ResultType getString(IdType id) { return id->*field; }
 };
 
 template<typename MemberPtrType>

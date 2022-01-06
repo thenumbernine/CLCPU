@@ -71,9 +71,15 @@ struct _cl_program {
 	struct _cl_icd_dispatch const * const dispatch = &dispatchTable;
 	int verify = cl_program_verify;
 	cl_context context = {};
-	int id = {};
+	int id = {};			// ID is used to prevent any symbol collisions by each linked program.  necessary?
 	std::string code;
 	cl_build_status status = CL_BUILD_NONE;
+	std::string options;
+	std::string log;
+	// TODO any handles to the library HERE
+	std::vector<cl_device_id> devices;
+
+	//shared_ptr because program owns the kernels
 	std::vector<std::shared_ptr<_cl_kernel>> kernels;
 
 	static int lastID;
