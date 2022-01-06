@@ -41,9 +41,10 @@ clCreateContext(
 	}
 	std::vector<cl_device_id> devicesVec(devices, devices + num_devices);
 	std::shared_ptr<_cl_context> context = std::make_shared<_cl_context>(devicesVec);
-	allContexts[context.get()] = context;
+	auto contextRaw = context.get();
+	allContexts[contextRaw] = context;
 	if (errcode_ret) *errcode_ret = CL_SUCCESS;
-	return context.get();
+	return contextRaw;
 }
 
 CL_API_ENTRY cl_context CL_API_CALL

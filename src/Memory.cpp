@@ -18,6 +18,7 @@ clCreateBuffer(
 	void * host_ptr,
 	cl_int * errcode_ret
 ) {
+	uint8_t * hostBytePtr = (uint8_t*)host_ptr;
 	if (!verifyContext(context)) {
 		if (errcode_ret) *errcode_ret = CL_INVALID_CONTEXT;
 		return nullptr;
@@ -41,7 +42,7 @@ clCreateBuffer(
 	}
 
 	bool reqHost = flags & (CL_MEM_USE_HOST_PTR | CL_MEM_COPY_HOST_PTR);
-	if ((reqHost && !host_ptr) || (!reqHost && host_ptr)) {
+	if ((reqHost && !hostBytePtr) || (!reqHost && hostBytePtr)) {
 		if (errcode_ret) *errcode_ret = CL_INVALID_HOST_PTR;
 		return nullptr;
 	}
@@ -49,12 +50,18 @@ clCreateBuffer(
 	std::shared_ptr<_cl_mem> mem = std::make_shared<_cl_mem>(
 		size,
 		flags,
-		(uint8_t*)host_ptr,
+		hostBytePtr,
 		context
 	);
-	allMems[mem.get()] = mem;
+	auto memRaw = mem.get();
+	allMems[memRaw] = mem;
+	
+	if (reqHost) {
+		std::copy(hostBytePtr, hostBytePtr + size, memRaw->buffer.begin());
+	}
+
 	if (errcode_ret) *errcode_ret = CL_SUCCESS;
-	return mem.get();
+	return memRaw;
 }
 
 bool verifyMem(_cl_mem* mem) {

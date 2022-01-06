@@ -41,10 +41,11 @@ clCreateCommandQueue(
 	}
 
 	std::shared_ptr<_cl_command_queue> queue = std::make_shared<_cl_command_queue>(context, device);
-	allQueues[queue.get()] = queue;
-	if (!device->defaultCommandQueue) device->defaultCommandQueue = queue.get();
+	auto queueRaw = queue.get();
+	allQueues[queueRaw] = queue;
+	if (!device->defaultCommandQueue) device->defaultCommandQueue = queueRaw;
 	if (errcode_ret) *errcode_ret = CL_SUCCESS;
-	return queue.get();
+	return queueRaw;
 }
 
 bool verifyQueue(const cl_command_queue queue) {
