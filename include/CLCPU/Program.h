@@ -58,6 +58,9 @@ clGetProgramBuildInfo(cl_program            program,
 extern int cl_program_verify;
 
 struct _cl_program {
+
+	static int lastID;
+	
 	_cl_program(
 		cl_context context_,
 		int id_,
@@ -82,6 +85,28 @@ struct _cl_program {
 	//shared_ptr because program owns the kernels
 	std::vector<std::shared_ptr<_cl_kernel>> kernels;
 
-	static int lastID;
+	void * libhandle = {};
+	std::string libfn;
+
+	//pointers inside the library:
+	size_t * _global_id_0 = {};
+	size_t * _global_id_1 = {};
+	size_t * _global_id_2 = {};
+
+	size_t * _global_size_0 = {};
+	size_t * _global_size_1 = {};
+	size_t * _global_size_2 = {};
+
+	size_t * _local_id_0 = {};
+	size_t * _local_id_1 = {};
+	size_t * _local_id_2 = {};
+
+	size_t * _local_size_0 = {};
+	size_t * _local_size_1 = {};
+	size_t * _local_size_2 = {};
+
+	size_t * _group_id_0 = {};
+	size_t * _group_id_1 = {};
+	size_t * _group_id_2 = {};
 };
 static_assert(offsetof(_cl_program, dispatch) == 0);

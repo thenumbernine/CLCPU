@@ -2,8 +2,11 @@
 #include "CLCPU/Context.h"
 #include "CLCPU/Device.h"
 #include "CLCPU/Getter.h"
+#include "Common/File.h"
 
+#include <cstdlib>
 #include <map>
+#include <dlfcn.h>
 
 int cl_program_verify = rand();
 	
@@ -102,7 +105,7 @@ typedef unsigned long ulong;
 
 )";
 
-// TODO half?
+// TODO half type too?
 	for (auto const base : vectorTypes) {
 		auto const name = base.name;
 		auto const size = base.size;
@@ -264,45 +267,84 @@ clBuildProgram(
 	if (!pfn_notify && user_data) return CL_INVALID_VALUE;
 
 	// TODO clear any build-specific program variables here
-	program->devices = {};
+	program->libhandle = {};
+	program->libfn = {};
 	program->options = {};
 	program->log = {};
+	program->devices = {};
 	program->status = CL_BUILD_IN_PROGRESS;
-
+	program->_global_id_0 = {};
+	program->_global_id_1 = {};
+	program->_global_id_2 = {};
+	program->_global_size_0 = {};
+	program->_global_size_1 = {};
+	program->_global_size_2 = {};
+	program->_local_id_0 = {};
+	program->_local_id_1 = {};
+	program->_local_id_2 = {};
+	program->_local_size_0 = {};
+	program->_local_size_1 = {};
+	program->_local_size_2 = {};
+	program->_group_id_0 = {};
+	program->_group_id_1 = {};
+	program->_group_id_2 = {};
 	
 	// TODO and do the building here
-	std::string log;
-	// upon any failure:
-	//program->status = CL_BUILD_ERROR;
-	//return CL_BUILD_PROGRAM_FAILURE;
+	std::string id = std::to_string(program->id);
+	std::string basename = "libtmp-1-" + id;
+	std::string srcfn = basename + ".c";
+	std::string objfn = basename + ".o";
+	std::string libfn = basename + ".o";
+	std::string logfn = basename + ".log";
+	
+	Common::File::write(srcfn, program->code);
 
-/*
-TODO get pointers to the following variables:
+	if (std::system((std::string() + "gcc -c -Wall -fPIC -O3 -std=c99 -o " + objfn + " " + srcfn + " > " + logfn + " 2>&1").c_str())) {
+		program->status = CL_BUILD_ERROR;
+		program->log = Common::File::read(logfn);
+		return CL_BUILD_PROGRAM_FAILURE;
+	}
 
-size_t _program_<?=id?>_global_id_0;
-size_t _program_<?=id?>_global_id_1;
-size_t _program_<?=id?>_global_id_2;
+	if (std::system((std::string() + "gcc -shared " + objfn + " -lm -o " + libfn + " >> " + logfn + " 2>&1").c_str())) {
+		program->status = CL_BUILD_ERROR;
+		program->log = Common::File::read(logfn);
+		return CL_BUILD_PROGRAM_FAILURE;
+	}
 
-size_t _program_<?=id?>_global_size_0;
-size_t _program_<?=id?>_global_size_1;
-size_t _program_<?=id?>_global_size_2;
+	void *libhandle = dlopen(libfn.c_str(), RTLD_LAZY);
+	if (!libhandle) {
+		program->status = CL_BUILD_ERROR;
+		program->log = Common::File::read(logfn);
+		return CL_BUILD_PROGRAM_FAILURE;
+	}
 
-size_t _program_<?=id?>_local_id_0;
-size_t _program_<?=id?>_local_id_1;
-size_t _program_<?=id?>_local_id_2;
+	program->_global_id_0 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_id_0;").c_str());
+	program->_global_id_1 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_id_1;").c_str());
+	program->_global_id_2 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_id_2;").c_str());
+	
+	program->_global_size_0 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_size_0;").c_str());
+	program->_global_size_1 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_size_1;").c_str());
+	program->_global_size_2 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_global_size_2;").c_str());
 
-size_t _program_<?=id?>_local_size_0;
-size_t _program_<?=id?>_local_size_1;
-size_t _program_<?=id?>_local_size_2;
+	program->_local_id_0 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_id_0;").c_str());
+	program->_local_id_1 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_id_1;").c_str());
+	program->_local_id_2 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_id_2;").c_str());
+	
+	program->_local_size_0 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_size_0;").c_str());
+	program->_local_size_1 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_size_1;").c_str());
+	program->_local_size_2 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_local_size_2;").c_str());
+	
+	program->_group_id_0 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_group_id_0;").c_str());
+	program->_group_id_1 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_group_id_1;").c_str());
+	program->_group_id_2 = (size_t*)dlsym(libhandle, (std::string() + "_program_" + id + "_group_id_2;").c_str());
 
-size_t _program_<?=id?>_group_id_0;
-size_t _program_<?=id?>_group_id_1;
-size_t _program_<?=id?>_group_id_2;
-*/
+	//TODO verify the linkage worked:
 
+	program->libhandle = libhandle;
+	program->libfn = libfn;
 	program->options = options;
+	program->log = Common::File::read(logfn);
 	program->devices = deviceVec;
-	program->log = log;
 	program->status = CL_BUILD_SUCCESS;
 	return CL_SUCCESS;
 }
