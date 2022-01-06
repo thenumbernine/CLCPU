@@ -62,11 +62,11 @@ CL_API_ENTRY cl_int CL_API_CALL clIcdGetPlatformIDsKHR(
 
 // hmm do I want to go constant-time access with compile-time getter, or log-n-time access with runtime virtual getter?
 static auto getPlatformInfoFields = std::map<cl_platform_info, std::shared_ptr<Getter<cl_platform_id>>>{
-	{CL_PLATFORM_PROFILE, std::make_shared<GetStringLiteral<cl_platform_id>>("FULL_PROFILE")},
-	{CL_PLATFORM_VERSION, std::make_shared<GetStringLiteral<cl_platform_id>>("OpenCL 1.1")},
-	{CL_PLATFORM_NAME, std::make_shared<GetStringLiteral<cl_platform_id>>("CPU debug implementation")},
-	{CL_PLATFORM_VENDOR, std::make_shared<GetStringLiteral<cl_platform_id>>("Christopher Moore")},
-	{CL_PLATFORM_EXTENSIONS, std::make_shared<GetStringLiteral<cl_platform_id>>("")},
+	{CL_PLATFORM_PROFILE, GetStringLiteral<cl_platform_id>("FULL_PROFILE")},
+	{CL_PLATFORM_VERSION, GetStringLiteral<cl_platform_id>("OpenCL 1.1")},
+	{CL_PLATFORM_NAME, GetStringLiteral<cl_platform_id>("CPU debug implementation")},
+	{CL_PLATFORM_VENDOR, GetStringLiteral<cl_platform_id>("Christopher Moore")},
+	{CL_PLATFORM_EXTENSIONS, GetStringLiteral<cl_platform_id>("")},
 	{CL_PLATFORM_HOST_TIMER_RESOLUTION, std::make_shared<GetPrimitiveFromLambda<cl_platform_id, cl_ulong>>([](cl_platform_id) -> cl_ulong {
 		// https://stackoverflow.com/questions/8386128/how-to-get-the-precision-of-high-resolution-clock
 		return std::chrono::duration<cl_ulong, std::nano>(typename std::chrono::high_resolution_clock::duration(1)).count();

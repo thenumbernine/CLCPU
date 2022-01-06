@@ -1,4 +1,5 @@
 #include "CLCPU/Memory.h"
+#include "CLCPU/Getter.h"
 
 #include <map>
 #include <memory>
@@ -28,6 +29,15 @@ clReleaseMemObject(cl_mem memobj) {
 	return CL_SUCCESS;
 }
 
+static auto getMemObjectInfoFields = std::map<cl_mem_info, std::shared_ptr<Getter<cl_mem>>>{
+	{CL_MEM_TYPE, GetField(&_cl_mem::type)},
+	{CL_MEM_FLAGS, GetField(&_cl_mem::flags)},
+	{CL_MEM_SIZE, GetField(&_cl_mem::size)},
+	{CL_MEM_HOST_PTR, GetField(&_cl_mem::hostPtr)},
+	{CL_MEM_MAP_COUNT, GetPrimitiveLiteral<cl_mem, cl_uint>(0)},
+	{CL_MEM_CONTEXT, GetField(&_cl_mem::context)},
+};
+
 CL_API_ENTRY cl_int CL_API_CALL
 clGetMemObjectInfo(
 	cl_mem memobj,
@@ -36,5 +46,8 @@ clGetMemObjectInfo(
 	void * param_value,
 	size_t * param_value_size_ret
 ) {
-	return CL_INVALID_MEM_OBJECT;
+	if (!verifyMem(memobj)) return CL_INVALID_PLATFORM;
+	auto i = getMemObjectInfoFields.find(param_name);
+	if (i == getMemObjectInfoFields.end()) return CL_INVALID_VALUE;
+	return i->second->getValue(param_value_size, param_value, param_value_size_ret, memobj);
 }

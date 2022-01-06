@@ -48,10 +48,10 @@ static cl_uint clDeviceMaxComputeUnits = std::thread::hardware_concurrency();
 static cl_uint clDeviceMaxWorkItemDimension = 3;
 
 static auto getDeviceInfoFields = std::map<cl_device_info, std::shared_ptr<Getter<cl_device_id>>>{
-	{CL_DEVICE_TYPE, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_device_type>>(CL_DEVICE_TYPE_CPU)},
-	{CL_DEVICE_VENDOR_ID, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_uint>>(0)},
-	{CL_DEVICE_MAX_COMPUTE_UNITS, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_uint>>(clDeviceMaxComputeUnits)},
-	{CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_uint>>(clDeviceMaxWorkItemDimension)},
+	{CL_DEVICE_TYPE, GetPrimitiveLiteral<cl_device_id, cl_device_type>(CL_DEVICE_TYPE_CPU)},
+	{CL_DEVICE_VENDOR_ID, GetPrimitiveLiteral<cl_device_id, cl_uint>(0)},
+	{CL_DEVICE_MAX_COMPUTE_UNITS, GetPrimitiveLiteral<cl_device_id, cl_uint>(clDeviceMaxComputeUnits)},
+	{CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, GetPrimitiveLiteral<cl_device_id, cl_uint>(clDeviceMaxWorkItemDimension)},
 	
 	// TODO std::array-based getter
 	{CL_DEVICE_MAX_WORK_ITEM_SIZES, std::make_shared<GetterLambda<cl_device_id>>(
@@ -72,20 +72,16 @@ static auto getDeviceInfoFields = std::map<cl_device_info, std::shared_ptr<Gette
 		}
 	)},
 	
-	{CL_DEVICE_MAX_MEM_ALLOC_SIZE, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_ulong>>(clDeviceMaxMemAllocSize)},
-	{CL_DEVICE_NAME, std::make_shared<GetStringLiteral<cl_device_id>>("CPU debug implementation")},
-	{CL_DEVICE_VENDOR, std::make_shared<GetStringLiteral<cl_device_id>>("Christopher Moore")},
-	{CL_DEVICE_PROFILE, std::make_shared<GetStringLiteral<cl_device_id>>("FULL_PROFILE")},
-	{CL_DEVICE_VERSION, std::make_shared<GetStringLiteral<cl_device_id>>("OpenCL 1.1")},
-	{CL_DEVICE_EXTENSIONS, std::make_shared<GetStringLiteral<cl_device_id>>("cl_khr_fp64")},
-	{CL_DEVICE_PLATFORM, std::make_shared<GetPrimitiveFromLambda<cl_device_id, cl_platform_id>>(
-		[](cl_device_id device) -> cl_platform_id {
-			return device->platform;
-		}
-	)},
-	{CL_DEVICE_OPENCL_C_VERSION, std::make_shared<GetStringLiteral<cl_device_id>>("OpenCL 1.1")},
-	{CL_DEVICE_LINKER_AVAILABLE, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_bool>>(false)},
-	{CL_DEVICE_BUILT_IN_KERNELS, std::make_shared<GetStringLiteral<cl_device_id>>("")},
+	{CL_DEVICE_MAX_MEM_ALLOC_SIZE, GetPrimitiveLiteral<cl_device_id, cl_ulong>(clDeviceMaxMemAllocSize)},
+	{CL_DEVICE_NAME, GetStringLiteral<cl_device_id>("CPU debug implementation")},
+	{CL_DEVICE_VENDOR, GetStringLiteral<cl_device_id>("Christopher Moore")},
+	{CL_DEVICE_PROFILE, GetStringLiteral<cl_device_id>("FULL_PROFILE")},
+	{CL_DEVICE_VERSION, GetStringLiteral<cl_device_id>("OpenCL 1.1")},
+	{CL_DEVICE_EXTENSIONS, GetStringLiteral<cl_device_id>("cl_khr_fp64")},
+	{CL_DEVICE_PLATFORM, GetField(&_cl_device_id::platform)},
+	{CL_DEVICE_OPENCL_C_VERSION, GetStringLiteral<cl_device_id>("OpenCL 1.1")},
+	{CL_DEVICE_LINKER_AVAILABLE, GetPrimitiveLiteral<cl_device_id, cl_bool>(false)},
+	{CL_DEVICE_BUILT_IN_KERNELS, GetStringLiteral<cl_device_id>("")},
 };
 
 bool verifyDevice(const cl_device_id device) {

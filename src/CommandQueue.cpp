@@ -71,17 +71,9 @@ clReleaseCommandQueue(
 }
 
 static auto getCommandQueueInfoFields = std::map<cl_command_queue_info, std::shared_ptr<Getter<cl_command_queue>>>{
-	{CL_QUEUE_CONTEXT, std::make_shared<GetField<_cl_command_queue, cl_context, &_cl_command_queue::context>>()},
-	{CL_QUEUE_DEVICE, std::make_shared<GetPrimitiveFromLambda<cl_command_queue, cl_device_id>>(
-		[](cl_command_queue queue) -> cl_device_id {
-			return queue->device;
-		}
-	)},
-	{CL_QUEUE_SIZE, std::make_shared<GetPrimitiveFromLambda<cl_command_queue, cl_uint>>(
-		[](cl_command_queue queue) -> cl_uint {
-			return queue->size;
-		}
-	)},
+	{CL_QUEUE_CONTEXT, GetField(&_cl_command_queue::context)},
+	{CL_QUEUE_DEVICE, GetField(&_cl_command_queue::device)},
+	{CL_QUEUE_SIZE, GetField(&_cl_command_queue::size)},
 	{CL_QUEUE_DEVICE_DEFAULT, std::make_shared<GetPrimitiveFromLambda<cl_command_queue, cl_command_queue>>(
 		[](cl_command_queue queue) -> cl_command_queue {
 			auto device = queue->device;

@@ -1,7 +1,10 @@
 #pragma once
 
+#include "Common/Meta.h"
 #include <string>
 #include <functional>
+#include <type_traits>
+#include <memory>
 
 template<typename IdType>
 struct Getter {
@@ -47,11 +50,16 @@ struct GetString : public Getter<IdType> {
 };
 
 template<typename IdType>
-struct GetStringLiteral : public GetString<IdType> {
+struct GetStringLiteralClass : public GetString<IdType> {
 	std::string str;
-	GetStringLiteral(std::string const str_) : str(str_) {}
+	GetStringLiteralClass(std::string const str_) : str(str_) {}
 	virtual std::string getString() { return str; }
 };
+
+template<typename IdType>
+auto GetStringLiteral(std::string str) {
+	return std::make_shared<GetStringLiteralClass<IdType>>(str);
+}
 
 template<typename IdType, typename ResultType>
 struct GetPrimitive : public Getter<IdType> {
@@ -73,11 +81,17 @@ struct GetPrimitive : public Getter<IdType> {
 };
 
 template<typename IdType, typename ResultType>
-struct GetPrimitiveLiteral : public GetPrimitive<IdType, ResultType> {
+struct GetPrimitiveLiteralClass : public GetPrimitive<IdType, ResultType> {
 	ResultType value;
-	GetPrimitiveLiteral(ResultType const value_) : value(value_) {}
+	GetPrimitiveLiteralClass(ResultType const value_) : value(value_) {}
 	virtual ResultType getPrimitive(IdType id) { return value; }
 };
+
+//is IdType really needed here?  only to cast the id object in the parent ... which is passed to the child ... and never used here ...
+template<typename IdType, typename ResultType>
+auto GetPrimitiveLiteral(ResultType value) {
+	return std::make_shared<GetPrimitiveLiteralClass<IdType, ResultType>>(value);
+}
 
 template<typename IdType, typename ResultType>
 struct GetPrimitiveFromLambda : public GetPrimitive<IdType, ResultType> {
@@ -86,13 +100,27 @@ struct GetPrimitiveFromLambda : public GetPrimitive<IdType, ResultType> {
 	virtual ResultType getPrimitive(IdType id) { return lambda(id); }
 };
 
-//assumes IdBaseType is a pointer to a struct, so *IdType is the struct type
-template<typename IdBaseType, typename ResultType, ResultType IdBaseType::*Field>
-struct GetField : public GetPrimitive<
-	IdBaseType*,
+//assumes IdType is a pointer of a struct that holds the field
+template<typename IdType, typename ResultType>
+struct GetFieldClass : public GetPrimitive<
+	IdType,
 	ResultType
 > {
-	virtual ResultType getPrimitive(IdBaseType* id) {
-		return id->*Field;
+	using IdBaseType = std::remove_pointer_t<IdType>;
+	ResultType IdBaseType::*field = {};
+	GetFieldClass(
+		ResultType IdBaseType::* field_
+	) : field(field_) {}
+	virtual ResultType getPrimitive(IdType id) {
+		return id->*field;
 	}
 };
+
+template<typename MemberPtrType>
+auto GetField(MemberPtrType t) {
+	using IdBaseType = typename Common::MemberPointer<MemberPtrType>::ClassType;
+	using IdType = IdBaseType*;
+	using ResultType = typename Common::MemberPointer<MemberPtrType>::FieldType;
+	using GetFieldType = GetFieldClass<IdType, ResultType>;
+	return std::make_shared<GetFieldType>(t);
+}

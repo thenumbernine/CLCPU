@@ -22,12 +22,13 @@ struct _cl_mem {
 	struct _cl_icd_dispatch const * const dispatch = &dispatchTable;
 	
 	int verify = cl_mem_verify;
-
+	
+	cl_mem_object_type type = {};
 	size_t size = {};
 	cl_mem_flags flags = {};
 	uint8_t * ptr = {};
 	uint8_t * hostPtr = {};
-	cl_context ctx = {};
+	cl_context context = {};
 };
 static_assert(offsetof(_cl_mem, dispatch) == 0);
 
