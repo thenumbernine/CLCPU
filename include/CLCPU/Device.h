@@ -30,11 +30,11 @@ struct _cl_device_id {
 	int verify = cl_device_verify;
 	
 	//assign upon clCreatePlatform
-	cl_platform_id platform = nullptr;
+	cl_platform_id platform = {};
 
 	//should this be constructed upon first clCreateCommandQueue,
 	// or should it be constructed upon device creation?
 	//I'm doing the latter, but what do the specs say?
-	_cl_command_queue* defaultCommandQueue = nullptr;
+	_cl_command_queue* defaultCommandQueue = {};
 };
 static_assert(offsetof(_cl_device_id, dispatch) == 0);

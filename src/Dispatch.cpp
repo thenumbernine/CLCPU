@@ -1,38 +1,51 @@
+// honestly if my names are matching then all I need to do is use cl.h
+// but ... should my names match? I think they shouldn't -- of anything for safety
 #include "CLCPU/Dispatch.h"
 #include "CLCPU/Platform.h"
 #include "CLCPU/Device.h"
 #include "CLCPU/Context.h"
 #include "CLCPU/CommandQueue.h"
+#include "CLCPU/Memory.h"
+#include "CLCPU/Buffer.h"
+#include "CLCPU/Sampler.h"
 
 cl_icd_dispatch dispatchTable = {
 	/* OpenCL 1.0 */
+	//Platform.h
 	clGetPlatformIDs,
 	clGetPlatformInfo,
+	//Device.h
 	clGetDeviceIDs,
 	clGetDeviceInfo,
+	//Context.h
 	clCreateContext,
 	clCreateContextFromType,
 	clRetainContext,
 	clReleaseContext,
 	clGetContextInfo,
+	//CommandQueue.h
 	clCreateCommandQueue,
 	clRetainCommandQueue,
 	clReleaseCommandQueue,
 	clGetCommandQueueInfo,
 	clSetCommandQueueProperty,
+	
+	clCreateBuffer,				//Buffer.h
+	clCreateImage2D,			//Sampler.h
+	clCreateImage3D,			//Sampler.h
+	clRetainMemObject,			//Memory.h
+	clReleaseMemObject,			//Memory.h
+	clGetSupportedImageFormats,	//Sampler.h
+	clGetMemObjectInfo,			//Memory.h
+	
+	//Sampler.h
+	clGetImageInfo,
+	clCreateSampler,
+	clRetainSampler,
+	clReleaseSampler,
+	clGetSamplerInfo,
+
 #if 0	
-	cl_api_clCreateBuffer clCreateBuffer;
-	cl_api_clCreateImage2D clCreateImage2D;
-	cl_api_clCreateImage3D clCreateImage3D;
-	cl_api_clRetainMemObject clRetainMemObject;
-	cl_api_clReleaseMemObject clReleaseMemObject;
-	cl_api_clGetSupportedImageFormats clGetSupportedImageFormats;
-	cl_api_clGetMemObjectInfo clGetMemObjectInfo;
-	cl_api_clGetImageInfo clGetImageInfo;
-	cl_api_clCreateSampler clCreateSampler;
-	cl_api_clRetainSampler clRetainSampler;
-	cl_api_clReleaseSampler clReleaseSampler;
-	cl_api_clGetSamplerInfo clGetSamplerInfo;
 	cl_api_clCreateProgramWithSource clCreateProgramWithSource;
 	cl_api_clCreateProgramWithBinary clCreateProgramWithBinary;
 	cl_api_clRetainProgram clRetainProgram;

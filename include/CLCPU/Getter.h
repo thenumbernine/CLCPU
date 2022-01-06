@@ -85,3 +85,14 @@ struct GetPrimitiveFromLambda : public GetPrimitive<IdType, ResultType> {
 	GetPrimitiveFromLambda(decltype(lambda) lambda_) : lambda(lambda_) {}
 	virtual ResultType getPrimitive(IdType id) { return lambda(id); }
 };
+
+//assumes IdBaseType is a pointer to a struct, so *IdType is the struct type
+template<typename IdBaseType, typename ResultType, ResultType IdBaseType::*Field>
+struct GetField : public GetPrimitive<
+	IdBaseType*,
+	ResultType
+> {
+	virtual ResultType getPrimitive(IdBaseType* id) {
+		return id->*Field;
+	}
+};

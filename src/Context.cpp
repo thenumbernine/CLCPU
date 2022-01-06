@@ -63,10 +63,9 @@ clCreateContextFromType(
 }
 
 bool verifyContext(const cl_context context) {
+	if (!context) return false;
 	if (context->verify != cl_context_verify) return false;
-	if (std::find_if(allContexts.begin(), allContexts.end(), [context](auto ocontext) -> bool {
-		return ocontext.second.get() == context;
-	}) == allContexts.end()) return false;
+	if (allContexts.find(context) == allContexts.end()) return false;
 	return true;
 }
 

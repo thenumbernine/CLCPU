@@ -13,9 +13,12 @@ struct _cl_command_queue {
 	_cl_command_queue(cl_context ctx_, cl_device_id device_) : context(ctx_), device(device_) {}
 	struct _cl_icd_dispatch const * const dispatch = &dispatchTable;
 	int verify = cl_queue_verify;
-	cl_context context = nullptr;
-	cl_device_id device = nullptr;
-	cl_uint size = 0;
+	cl_context context = {};
+	cl_device_id device = {};
+	
+	//TODO instead of size, have the actual list of commands
+	//and have a thread running that is executing them.
+	cl_uint size = {};
 };
 static_assert(offsetof(_cl_command_queue, dispatch) == 0);
 
@@ -45,10 +48,9 @@ clCreateCommandQueue(
 }
 
 bool verifyQueue(const cl_command_queue queue) {
+	if (!queue) return false;
 	if (queue->verify != cl_queue_verify) return false;
-	if (std::find_if(allQueues.begin(), allQueues.end(), [queue](auto oqueue) -> bool {
-		return oqueue.second.get() == queue;
-	}) == allQueues.end()) return false;
+	if (allQueues.find(queue) == allQueues.end()) return false;
 	return true;
 }
 
@@ -69,11 +71,7 @@ clReleaseCommandQueue(
 }
 
 static auto getCommandQueueInfoFields = std::map<cl_command_queue_info, std::shared_ptr<Getter<cl_command_queue>>>{
-	{CL_QUEUE_CONTEXT, std::make_shared<GetPrimitiveFromLambda<cl_command_queue, cl_context>>(
-		[](cl_command_queue queue) -> cl_context {
-			return queue->context;
-		}
-	)},
+	{CL_QUEUE_CONTEXT, std::make_shared<GetField<_cl_command_queue, cl_context, &_cl_command_queue::context>>()},
 	{CL_QUEUE_DEVICE, std::make_shared<GetPrimitiveFromLambda<cl_command_queue, cl_device_id>>(
 		[](cl_command_queue queue) -> cl_device_id {
 			return queue->device;

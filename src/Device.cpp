@@ -78,14 +78,18 @@ static auto getDeviceInfoFields = std::map<cl_device_info, std::shared_ptr<Gette
 	{CL_DEVICE_PROFILE, std::make_shared<GetStringLiteral<cl_device_id>>("FULL_PROFILE")},
 	{CL_DEVICE_VERSION, std::make_shared<GetStringLiteral<cl_device_id>>("OpenCL 1.1")},
 	{CL_DEVICE_EXTENSIONS, std::make_shared<GetStringLiteral<cl_device_id>>("cl_khr_fp64")},
-	{CL_DEVICE_PLATFORM, std::make_shared<GetPrimitiveFromLambda<cl_device_id, cl_platform_id>>([](cl_device_id device) -> cl_platform_id { return device->platform; })},
+	{CL_DEVICE_PLATFORM, std::make_shared<GetPrimitiveFromLambda<cl_device_id, cl_platform_id>>(
+		[](cl_device_id device) -> cl_platform_id {
+			return device->platform;
+		}
+	)},
 	{CL_DEVICE_OPENCL_C_VERSION, std::make_shared<GetStringLiteral<cl_device_id>>("OpenCL 1.1")},
 	{CL_DEVICE_LINKER_AVAILABLE, std::make_shared<GetPrimitiveLiteral<cl_device_id, cl_bool>>(false)},
 	{CL_DEVICE_BUILT_IN_KERNELS, std::make_shared<GetStringLiteral<cl_device_id>>("")},
 };
 
 bool verifyDevice(const cl_device_id device) {
-	//verify device
+	if (!device) return false;
 	if (device->verify != cl_device_verify) return false;
 	if (device != &thisDevice) return false;
 	return true;
