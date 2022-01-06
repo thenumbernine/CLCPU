@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CLCPU/Dispatch.h"
 #include <CL/cl.h>
 #include <vector>
 
@@ -20,3 +21,20 @@ clGetDeviceIDs(cl_platform_id   platform,
 bool verifyDevice(const cl_device_id device);
 
 extern std::vector<cl_device_id> allDevices;
+
+extern int cl_device_verify;
+
+struct _cl_device_id {
+	struct _cl_icd_dispatch const * const dispatch = &dispatchTable;	
+	
+	int verify = cl_device_verify;
+	
+	//assign upon clCreatePlatform
+	cl_platform_id platform = nullptr;
+
+	//should this be constructed upon first clCreateCommandQueue,
+	// or should it be constructed upon device creation?
+	//I'm doing the latter, but what do the specs say?
+	_cl_command_queue* defaultCommandQueue = nullptr;
+};
+static_assert(offsetof(_cl_device_id, dispatch) == 0);

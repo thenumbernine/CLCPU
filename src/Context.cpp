@@ -14,8 +14,11 @@ struct _cl_context {
 	int verify = cl_context_verify;
 	std::vector<cl_device_id> devices;
 };
+static_assert(offsetof(_cl_context, dispatch) == 0);
 
-static std::vector<std::shared_ptr<_cl_context>> allContexts;
+// key of raw pointer for fast lookup
+// value of smart ptr for refcount / allocation
+static std::map<_cl_context*, std::shared_ptr<_cl_context>> allContexts;
 
 CL_API_ENTRY cl_context CL_API_CALL
 clCreateContext(
@@ -29,7 +32,7 @@ clCreateContext(
 		void * user_data),
 	void * user_data,
 	cl_int * errcode_ret
-) CL_API_SUFFIX__VERSION_1_0 {
+) {
 	for (size_t i = 0; i < num_devices; ++i) {
 		if (!verifyDevice(devices[i])) {
 			if (errcode_ret) *errcode_ret = CL_INVALID_DEVICE;
@@ -38,17 +41,9 @@ clCreateContext(
 	}
 	std::vector<cl_device_id> devicesVec(devices, devices + num_devices);
 	std::shared_ptr<_cl_context> context = std::make_shared<_cl_context>(devicesVec);
-	allContexts.push_back(context);
+	allContexts[context.get()] = context;
 	if (errcode_ret) *errcode_ret = CL_SUCCESS;
 	return context.get();
-}
-
-bool verifyContext(const cl_context ctx) {
-	if (ctx->verify != cl_context_verify) return false;
-	if (std::find_if(allContexts.begin(), allContexts.end(), [ctx](auto octx) -> bool {
-		return octx.get() == ctx;
-	}) == allContexts.end()) return false;
-	return true;
 }
 
 CL_API_ENTRY cl_context CL_API_CALL
@@ -62,15 +57,23 @@ clCreateContextFromType(
 		void * user_data),
 	void * user_data,
 	cl_int * errcode_ret
-) CL_API_SUFFIX__VERSION_1_0 {
+) {
 	//TODO can you do null for device of context?
 	return clCreateContext(properties, allDevices.size(), allDevices.data(), pfn_notify, user_data, errcode_ret);
+}
+
+bool verifyContext(const cl_context context) {
+	if (context->verify != cl_context_verify) return false;
+	if (std::find_if(allContexts.begin(), allContexts.end(), [context](auto ocontext) -> bool {
+		return ocontext.second.get() == context;
+	}) == allContexts.end()) return false;
+	return true;
 }
 
 CL_API_ENTRY cl_int CL_API_CALL
 clRetainContext(
 	cl_context context
-) CL_API_SUFFIX__VERSION_1_0 {
+) {
 	if (!verifyContext(context)) return CL_INVALID_CONTEXT;
 	return CL_SUCCESS;
 }
@@ -78,7 +81,7 @@ clRetainContext(
 CL_API_ENTRY cl_int CL_API_CALL
 clReleaseContext(
 	cl_context context
-) CL_API_SUFFIX__VERSION_1_0 {
+) {
 	if (!verifyContext(context)) return CL_INVALID_CONTEXT;
 	return CL_SUCCESS;
 }
@@ -123,7 +126,7 @@ clGetContextInfo(
 	size_t param_value_size,
 	void * param_value,
 	size_t * param_value_size_ret
-) CL_API_SUFFIX__VERSION_1_0 {
+) {
 	if (!verifyContext(context)) return CL_INVALID_PLATFORM;
 	auto i = getContextInfoFields.find(param_name);
 	if (i == getContextInfoFields.end()) return CL_INVALID_VALUE;

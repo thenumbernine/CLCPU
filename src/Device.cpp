@@ -7,13 +7,7 @@
 #include <memory>
 #include <thread>
 
-static int cl_device_verify = rand();
-
-struct _cl_device_id {
-	struct _cl_icd_dispatch const * const dispatch = &dispatchTable;	
-	int verify = cl_device_verify;
-	cl_platform_id platform = nullptr;	//assign upon clCreatePlatform
-};
+int cl_device_verify = rand();
 
 static _cl_device_id thisDevice;
 
@@ -25,7 +19,7 @@ CL_API_ENTRY cl_int CL_API_CALL clGetDeviceIDs(
 	cl_uint num_entries,
 	cl_device_id * devices,
 	cl_uint * num_devices
-) CL_API_SUFFIX__VERSION_1_0 {
+) {
 	if (!verifyPlatform(platform)) return CL_INVALID_PLATFORM;
 
 	// TODO care about device_type
@@ -104,7 +98,7 @@ clGetDeviceInfo(
 	size_t param_value_size,
 	void * param_value,
 	size_t * param_value_size_ret
-) CL_API_SUFFIX__VERSION_1_0 {
+) {
 	if (!verifyDevice(device)) return CL_INVALID_PLATFORM;
 	auto i = getDeviceInfoFields.find(param_name);
 	if (i == getDeviceInfoFields.end()) return CL_INVALID_VALUE;

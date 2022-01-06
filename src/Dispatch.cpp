@@ -1,4 +1,8 @@
 #include "CLCPU/Dispatch.h"
+#include "CLCPU/Platform.h"
+#include "CLCPU/Device.h"
+#include "CLCPU/Context.h"
+#include "CLCPU/CommandQueue.h"
 
 cl_icd_dispatch dispatchTable = {
 	/* OpenCL 1.0 */
@@ -11,12 +15,12 @@ cl_icd_dispatch dispatchTable = {
 	clRetainContext,
 	clReleaseContext,
 	clGetContextInfo,
+	clCreateCommandQueue,
+	clRetainCommandQueue,
+	clReleaseCommandQueue,
+	clGetCommandQueueInfo,
+	clSetCommandQueueProperty,
 #if 0	
-	cl_api_clCreateCommandQueue clCreateCommandQueue;
-	cl_api_clRetainCommandQueue clRetainCommandQueue;
-	cl_api_clReleaseCommandQueue clReleaseCommandQueue;
-	cl_api_clGetCommandQueueInfo clGetCommandQueueInfo;
-	cl_api_clSetCommandQueueProperty clSetCommandQueueProperty;
 	cl_api_clCreateBuffer clCreateBuffer;
 	cl_api_clCreateImage2D clCreateImage2D;
 	cl_api_clCreateImage3D clCreateImage3D;

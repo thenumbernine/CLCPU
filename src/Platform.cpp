@@ -23,9 +23,9 @@ or does libOpenCL just look for identical named functions in the icd-loaded .so/
 */
 struct _cl_platform_id {
 	struct _cl_icd_dispatch const * const dispatch = &dispatchTable;
-	
 	int verify = cl_platform_verify;
 };
+static_assert(offsetof(_cl_platform_id, dispatch) == 0);
 
 static _cl_platform_id thisPlatform;
 
@@ -33,7 +33,7 @@ CL_API_ENTRY cl_int CL_API_CALL clGetPlatformIDs(
 	cl_uint num_entries,
 	cl_platform_id *platforms,
 	cl_uint *num_platforms
-) CL_API_SUFFIX__VERSION_1_0 {
+) {
 	if (!num_entries && platforms) {
 		return CL_INVALID_VALUE;
 	}
@@ -98,7 +98,7 @@ CL_API_ENTRY cl_int CL_API_CALL clGetPlatformInfo(
 	size_t param_value_size,
 	void* param_value,
 	size_t* param_value_size_ret
-) CL_API_SUFFIX__VERSION_1_0 {
+) {
 	if (!verifyPlatform(platform)) return CL_INVALID_PLATFORM;
 	auto i = getPlatformInfoFields.find(param_name);
 	if (i == getPlatformInfoFields.end()) return CL_INVALID_VALUE;
