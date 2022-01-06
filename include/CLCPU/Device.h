@@ -41,5 +41,7 @@ struct _cl_device_id {
 
 	static constexpr cl_ulong maxMemAllocSize = 5461822664;
 	static constexpr cl_uint maxWorkItemDim = 3;
+	static cl_uint maxComputeUnits;
+	static size_t maxWorkGroupSize;
 };
 static_assert(offsetof(_cl_device_id, dispatch) == 0);

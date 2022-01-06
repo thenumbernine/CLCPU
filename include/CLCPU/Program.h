@@ -1,8 +1,11 @@
 #pragma once
 
 #include "CLCPU/Dispatch.h"
+
 #include <CL/cl.h>
+
 #include <vector>
+#include <map>
 #include <string>
 #include <memory>
 
@@ -84,8 +87,9 @@ struct _cl_program {
 	// TODO any handles to the library HERE
 	std::vector<cl_device_id> devices;
 
-	//shared_ptr because program owns the kernels
-	std::vector<std::shared_ptr<_cl_kernel>> kernels;
+	//key is string to lookup kernel by name
+	//value shared_ptr because program owns the kernels
+	std::map<std::string, std::shared_ptr<_cl_kernel>> kernels;
 
 	//library filename:
 	std::string libfn;
@@ -97,3 +101,7 @@ struct _cl_program {
 	ProgramLibVars * libvars = {};
 };
 static_assert(offsetof(_cl_program, dispatch) == 0);
+
+bool verifyProgram(_cl_program* program);
+
+extern std::map<cl_program, std::shared_ptr<_cl_program>> allPrograms;

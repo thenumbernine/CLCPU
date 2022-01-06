@@ -42,15 +42,16 @@ CL_API_ENTRY cl_int CL_API_CALL clGetDeviceIDs(
 	}
 	return CL_SUCCESS;
 }
-		
-static cl_uint clDeviceMaxComputeUnits = std::thread::hardware_concurrency();
+
+cl_uint _cl_device_id::maxComputeUnits = std::thread::hardware_concurrency();
+size_t _cl_device_id::maxWorkGroupSize = std::thread::hardware_concurrency();
 
 static auto getDeviceInfoFields = std::map<cl_device_info, std::shared_ptr<Getter<cl_device_id>>>{
 	{CL_DEVICE_TYPE, GetPrimitiveLiteral<cl_device_id, cl_device_type>(CL_DEVICE_TYPE_CPU)},
 	{CL_DEVICE_VENDOR_ID, GetPrimitiveLiteral<cl_device_id, cl_uint>(0)},
-	{CL_DEVICE_MAX_COMPUTE_UNITS, GetPrimitiveLiteral<cl_device_id, cl_uint>(clDeviceMaxComputeUnits)},
+	{CL_DEVICE_MAX_COMPUTE_UNITS, GetPrimitiveLiteral<cl_device_id, cl_uint>(_cl_device_id::maxComputeUnits)},
 	{CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, GetPrimitiveLiteral<cl_device_id, cl_uint>(_cl_device_id::maxWorkItemDim)},
-	
+	{CL_DEVICE_MAX_WORK_GROUP_SIZE, GetPrimitiveLiteral<cl_device_id, size_t>(_cl_device_id::maxWorkGroupSize)},
 	// TODO std::array-based getter
 	{CL_DEVICE_MAX_WORK_ITEM_SIZES, std::make_shared<GetterLambda<cl_device_id>>(
 		[](size_t param_value_size, void* param_value, size_t* param_value_size_ret, cl_device_id id) -> cl_int {

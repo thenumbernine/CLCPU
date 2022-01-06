@@ -54,14 +54,16 @@ cl_icd_dispatch dispatchTable = {
 	clGetProgramInfo,
 	clGetProgramBuildInfo,
 
+	//Kernel.h
+	clCreateKernel,
+	clCreateKernelsInProgram,
+	clRetainKernel,
+	clReleaseKernel,
+	clSetKernelArg,
+	clGetKernelInfo,
+	clGetKernelWorkGroupInfo,
+
 #if 0
-	cl_api_clCreateKernel clCreateKernel;
-	cl_api_clCreateKernelsInProgram clCreateKernelsInProgram;
-	cl_api_clRetainKernel clRetainKernel;
-	cl_api_clReleaseKernel clReleaseKernel;
-	cl_api_clSetKernelArg clSetKernelArg;
-	cl_api_clGetKernelInfo clGetKernelInfo;
-	cl_api_clGetKernelWorkGroupInfo clGetKernelWorkGroupInfo;
 	cl_api_clWaitForEvents clWaitForEvents;
 	cl_api_clGetEventInfo clGetEventInfo;
 	cl_api_clRetainEvent clRetainEvent;

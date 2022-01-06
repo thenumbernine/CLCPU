@@ -289,7 +289,7 @@ clBuildProgram(
 
 	if (!pfn_notify && user_data) return CL_INVALID_VALUE;
 
-	// TODO clear any build-specific program variables here
+	// clear any build-specific program variables HERE
 	program->options = {};
 	program->log = {};
 	program->devices = {};
@@ -298,7 +298,7 @@ clBuildProgram(
 	program->libvars = {};
 	program->libhandle = {};
 	
-	// TODO and do the building here
+	// ...and do the building here ...
 	std::string id = std::to_string(program->id);
 	std::string basename = "libtmp-1-" + id;
 	std::string srcfn = basename + ".c";
