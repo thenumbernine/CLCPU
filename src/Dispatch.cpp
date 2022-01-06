@@ -44,15 +44,17 @@ cl_icd_dispatch dispatchTable = {
 	clReleaseSampler,
 	clGetSamplerInfo,
 
-#if 0	
-	cl_api_clCreateProgramWithSource clCreateProgramWithSource;
-	cl_api_clCreateProgramWithBinary clCreateProgramWithBinary;
-	cl_api_clRetainProgram clRetainProgram;
-	cl_api_clReleaseProgram clReleaseProgram;
-	cl_api_clBuildProgram clBuildProgram;
-	cl_api_clUnloadCompiler clUnloadCompiler;
-	cl_api_clGetProgramInfo clGetProgramInfo;
-	cl_api_clGetProgramBuildInfo clGetProgramBuildInfo;
+	//Program.h
+	clCreateProgramWithSource,
+	clCreateProgramWithBinary,
+	clRetainProgram,
+	clReleaseProgram,
+	clBuildProgram,
+	clUnloadCompiler,
+	clGetProgramInfo,
+	clGetProgramBuildInfo,
+
+#if 0
 	cl_api_clCreateKernel clCreateKernel;
 	cl_api_clCreateKernelsInProgram clCreateKernelsInProgram;
 	cl_api_clRetainKernel clRetainKernel;
