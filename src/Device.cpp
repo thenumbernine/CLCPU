@@ -43,7 +43,6 @@ CL_API_ENTRY cl_int CL_API_CALL clGetDeviceIDs(
 	return CL_SUCCESS;
 }
 		
-static cl_ulong clDeviceMaxMemAllocSize = 5461822664;
 static cl_uint clDeviceMaxComputeUnits = std::thread::hardware_concurrency();
 static cl_uint clDeviceMaxWorkItemDimension = 3;
 
@@ -72,7 +71,7 @@ static auto getDeviceInfoFields = std::map<cl_device_info, std::shared_ptr<Gette
 		}
 	)},
 	
-	{CL_DEVICE_MAX_MEM_ALLOC_SIZE, GetPrimitiveLiteral<cl_device_id, cl_ulong>(clDeviceMaxMemAllocSize)},
+	{CL_DEVICE_MAX_MEM_ALLOC_SIZE, GetPrimitiveLiteral<cl_device_id, cl_ulong>(_cl_device_id::maxMemAllocSize)},
 	{CL_DEVICE_NAME, GetStringLiteral<cl_device_id>("CPU debug implementation")},
 	{CL_DEVICE_VENDOR, GetStringLiteral<cl_device_id>("Christopher Moore")},
 	{CL_DEVICE_PROFILE, GetStringLiteral<cl_device_id>("FULL_PROFILE")},

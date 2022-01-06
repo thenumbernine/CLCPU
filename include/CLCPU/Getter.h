@@ -29,6 +29,7 @@ struct GetterLambda : public Getter<IdType> {
 	}
 };
 
+//down this child tree, IdType and id are never used ...
 template<typename IdType>
 struct GetString : public Getter<IdType> {
 	virtual cl_int getValue(size_t param_value_size, void* param_value, size_t* param_value_size_ret, IdType id) {

@@ -36,5 +36,9 @@ struct _cl_device_id {
 	// or should it be constructed upon device creation?
 	//I'm doing the latter, but what do the specs say?
 	_cl_command_queue* defaultCommandQueue = {};
+
+// constants
+
+	static constexpr cl_ulong maxMemAllocSize = 5461822664;
 };
 static_assert(offsetof(_cl_device_id, dispatch) == 0);

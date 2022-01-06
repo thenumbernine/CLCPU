@@ -6,7 +6,6 @@
 #include "CLCPU/Context.h"
 #include "CLCPU/CommandQueue.h"
 #include "CLCPU/Memory.h"
-#include "CLCPU/Buffer.h"
 #include "CLCPU/Sampler.h"
 
 cl_icd_dispatch dispatchTable = {
@@ -30,7 +29,7 @@ cl_icd_dispatch dispatchTable = {
 	clGetCommandQueueInfo,
 	clSetCommandQueueProperty,
 	
-	clCreateBuffer,				//Buffer.h
+	clCreateBuffer,				//Memory.h
 	clCreateImage2D,			//Sampler.h
 	clCreateImage3D,			//Sampler.h
 	clRetainMemObject,			//Memory.h
